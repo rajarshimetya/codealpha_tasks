@@ -1,0 +1,68 @@
+import csv
+
+def stock_tracker():
+    # Step 1: Hardcoded stock prices
+    stock_prices = {
+        "AAPL": 180,
+        "TSLA": 250,
+        "GOOG": 2800,
+        "MSFT": 330,
+        "AMZN": 140
+    }
+
+    print("📈 Welcome to the Simple Stock Tracker 📉")
+    print("Available stocks and their prices (USD):")
+    for stock, price in stock_prices.items():
+        print(f"{stock}: ${price}")
+
+    # Step 2: User inputs stock names and quantities
+    investments = {}
+    while True:
+        stock_name = input("\nEnter stock symbol (or type 'done' to finish): ").upper()
+
+        if stock_name == "DONE":
+            break
+
+        if stock_name not in stock_prices:
+            print("❌ Invalid stock symbol. Please choose from the available list.")
+            continue
+
+        try:
+            quantity = int(input(f"Enter quantity of {stock_name}: "))
+            if quantity <= 0:
+                print("❌ Quantity must be positive.")
+                continue
+        except ValueError:
+            print("❌ Please enter a valid number.")
+            continue
+
+        # Store the investment
+        if stock_name in investments:
+            investments[stock_name] += quantity
+        else:
+            investments[stock_name] = quantity
+
+    # Step 3: Calculate total investment
+    total_value = 0
+    print("\nYour Investment Summary:")
+    for stock, qty in investments.items():
+        value = stock_prices[stock] * qty
+        total_value += value
+        print(f"{stock} ({qty} shares) = ${value}")
+
+    print(f"\n💰 Total Investment Value: ${total_value}")
+
+    # Step 4: Save results to CSV file
+    save_choice = input("\nDo you want to save the result to a CSV file? (yes/no): ").lower()
+    if save_choice == "yes":
+        with open("investment_summary.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Stock", "Quantity", "Price", "Value"])
+            for stock, qty in investments.items():
+                writer.writerow([stock, qty, stock_prices[stock], stock_prices[stock]*qty])
+            writer.writerow(["TOTAL", "", "", total_value])
+        print("✅ Investment summary saved as 'investment_summary.csv'")
+
+# Run the program
+if __name__ == "__main__":
+    stock_tracker()
