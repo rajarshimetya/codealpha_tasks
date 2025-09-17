@@ -1,0 +1,115 @@
+import os
+import shutil
+import re
+import urllib.request
+import urllib.error
+
+# ---------------------------
+# Setup Test Data (auto-create if missing)
+# ---------------------------
+def setup_test_data():
+    # Create source_images folder with dummy jpg files
+    if not os.path.exists("source_images"):
+        os.makedirs("source_images", exist_ok=True)
+        for i in range(1, 4):
+            with open(f"source_images/sample{i}.jpg", "wb") as f:
+                f.write(b"fake jpg data")  # placeholder jpg
+        print("📂 Created 'source_images' with 3 dummy jpg files.")
+    else:
+        print("📂 'source_images' already exists.")
+
+    # Create sample.txt with some emails
+    if not os.path.exists("sample.txt"):
+        sample_text = """Hello team,
+
+Please contact us at support@example.com for help.
+You can also reach sales at sales@mycompany.org
+and HR at hr.department@testmail.com.
+
+Thanks,
+Admin
+"""
+        with open("sample.txt", "w", encoding="utf-8") as f:
+            f.write(sample_text)
+        print("📄 Created 'sample.txt' with example email addresses.")
+    else:
+        print("📄 'sample.txt' already exists.")
+
+
+# ---------------------------
+# Task 1: Move all .jpg files
+# ---------------------------
+def move_jpg_files(source_folder, destination_folder):
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+
+    moved = 0
+    for file_name in os.listdir(source_folder):
+        if file_name.lower().endswith(".jpg"):
+            src = os.path.join(source_folder, file_name)
+            dst = os.path.join(destination_folder, file_name)
+            shutil.move(src, dst)
+            moved += 1
+            print(f"Moved: {file_name}")
+    print(f"Total .jpg files moved: {moved}")
+
+
+# ---------------------------
+# Task 2: Extract Emails
+# ---------------------------
+def extract_emails(input_file, output_file):
+    with open(input_file, "r", encoding="utf-8", errors="ignore") as f:
+        text = f.read()
+
+    # Regex for emails
+    emails = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}", text, flags=re.IGNORECASE)
+    emails = sorted(set(emails))  # remove duplicates and sort
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        for e in emails:
+            f.write(e + "\n")
+
+    print(f"✅ Extracted {len(emails)} unique emails to {output_file}")
+
+
+# ---------------------------
+# Task 3: Scrape Webpage Title
+# ---------------------------
+def scrape_webpage_title(url, output_file):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode("utf-8", errors="ignore")
+    except urllib.error.URLError as e:
+        title = f"Error fetching page: {e}"
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(title)
+        print(title)
+        return
+
+    m = re.search(r"<title[^>]*>(.*?)</title>", html, flags=re.IGNORECASE | re.DOTALL)
+    title = m.group(1).strip() if m else "No Title Found"
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(title)
+
+    print(f"✅ Saved page title to {output_file}: {title}")
+
+
+# ---------------------------
+# Main Program
+# ---------------------------
+if __name__ == "__main__":
+    print("🔧 Setting up test data...")
+    setup_test_data()
+
+    print("\n📂 Task 1: Moving JPG files...")
+    move_jpg_files("source_images", "moved_images")
+
+    print("\n📧 Task 2: Extracting Emails...")
+    extract_emails("sample.txt", "emails.txt")
+
+    print("\n🌐 Task 3: Scraping Webpage Title...")
+    scrape_webpage_title("https://example.com", "webpage_title.txt")
+
+    print("\n🎉 All tasks completed successfully!")
